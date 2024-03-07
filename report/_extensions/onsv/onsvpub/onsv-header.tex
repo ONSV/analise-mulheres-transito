@@ -1,0 +1,37 @@
+\let\paragraph\oldparagraph
+\let\subparagraph\oldsubparagraph
+
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+
+%% Cores nos títulos
+
+\definecolor{headingcolor}{HTML}{00496D} % Blue color
+
+\titleformat{\section}
+  {\color{headingcolor}\normalfont\Large\bfseries}
+  {\color{headingcolor}\thesection}{1em}{}
+
+\titleformat{\subsection}
+  {\color{headingcolor}\normalfont\large\bfseries}
+  {\color{headingcolor}\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}
+  {\color{headingcolor}\normalfont\normalsize\bfseries}
+  {\color{headingcolor}\thesubsubsection}{1em}{}
+
+%% Edita cabeçalho e rodapé
+
+\fancypagestyle{myfooter}{%
+  \fancyhf{} % Clear header and footer
+  \fancyfoot[L]{onsv.org.br} % Left footer text
+  \fancyfoot[R]{\thepage} % Right footer: page number
+  \fancyhead[L]{\includegraphics[width=3.5cm]{_extensions/onsv/onsvpub/onsv_logo_header.png}}
+  \fancyhead[R]{\includegraphics[width=1.75cm]{_extensions/onsv/onsvpub/obs2030.png}}
+  \renewcommand{\headrulewidth}{0.4pt} % Add header rule
+  \renewcommand{\footrulewidth}{0.4pt} % Add a footer rule
+}
+
+\pagestyle{myfooter}

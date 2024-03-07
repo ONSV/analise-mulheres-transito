@@ -1,0 +1,311 @@
+---
+title: "Dados Mulheres no Trânsito Brasileiro"
+format: onsvpub-html
+author: 
+  - Pedro Augusto Borges dos Santos
+date: last-modified
+editor_options: 
+  chunk_output_type: console
+bibliography: references.bib
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(arrow)
+library(janitor)
+```
+
+```{r}
+#| label: load-data
+#| include: false
+
+prf_arrow <- here::here("data", "prf_vitimas", "ano=2023")
+
+prf_vitimas_2023 <- open_dataset(prf_arrow)
+
+prf_condutores_2023 <- prf_vitimas_2023 |> 
+  select(
+    id, pesid, uf, tipo_acidente, fase_dia, 
+    tipo_veiculo, tipo_envolvido, sexo, estado_fisico
+  ) |> 
+  filter(tipo_envolvido == "Condutor") |> 
+  mutate(
+    regiao = case_when(
+      uf %in% c("AM", "RR", "AP", "PA", "TO", "RO", "AC") ~ "Norte",
+      uf %in% c("MA", "PI", "CE", "RN", "PB", "PE", "AL", "SE", "BA") ~ "Nordeste",
+      uf %in% c("MT", "MS", "GO", "DF") ~ "Centro-Oeste",
+      uf %in% c("SP", "RJ", "MG", "ES") ~ "Sudeste",
+      uf %in% c("PR", "RS", "SC") ~ "Sul",
+      TRUE ~ NA_character_
+    ),
+    estado_fisico = if_else(
+      estado_fisico %in% c("Ferido Grave", "Ferido Leve"),
+      "Ferido",
+      estado_fisico
+    )
+  ) |> 
+  collect()
+
+renach_path <- here::here("data", "condutores_habilitados_2023_12.csv")
+
+renach_2023 <- read_csv2(renach_path)
+
+renach_grouped_2023 <- renach_2023 |> 
+  clean_names() |> 
+  select(regiao_habilitacao_atual, sexo, categoria, qt_condutor_historico) |> 
+  group_by(regiao_habilitacao_atual, sexo, categoria) |> 
+  summarise(qtde_condutor = sum(qt_condutor_historico))
+```
+
+## Introdução
+
+Dados do ano de 2023.
+
+### Condutores Habilitados
+
+Fonte: @ministériodostransportes2024
+
+```{r}
+#| label: cnh-count
+#| echo: false
+
+tbl_count <- renach_grouped_2023 |> 
+  group_by(sexo) |> 
+  summarise(qtde_condutor = sum(qtde_condutor)) |> 
+  mutate(
+    percentual = scales::percent(
+      qtde_condutor / sum(qtde_condutor), accuracy = 1
+    )
+  )
+
+knitr::kable(
+  tbl_count,
+  format.args = list(big.mark = ".", decimal.mark = ","),
+  col.names = c(
+    "Gênero",
+    "Quantidade de condutores",
+    "Percentual"
+  ),
+  type = "simple",
+  caption = "Quantidade de Condutores Habilitados em 2023"
+)
+```
+
+```{r}
+#| label: cnh-categoria
+#| echo: false
+
+tbl_categoria <- renach_grouped_2023 |> 
+  group_by(sexo, categoria) |> 
+  summarise(qtde_condutor = sum(qtde_condutor)) |> 
+  pivot_wider(names_from = sexo, values_from = qtde_condutor) |> 
+  mutate(
+    total = Feminino + Masculino,
+    perc_fem = scales::percent(Feminino / (total), accuracy = 1),
+    perc_masc = scales::percent(Masculino / (total), accuracy = 1),
+  ) |> 
+  select(categoria, Feminino, Masculino, perc_fem, perc_masc, total) |> 
+  ungroup()
+
+knitr::kable(
+  tbl_categoria,
+  format.args = list(big.mark = ".", decimal.mark = ","),
+  format = "pipe",
+  digits = 0,
+  col.names = c(
+    "Categoria", "Feminino", "Masculino", "% Feminino", "% Masculino", "Total"
+  ),
+  caption = "Quantidade de Condutores Habilitados em 2023, por categoria"
+) 
+```
+
+```{r}
+#| label: cnh-regiao
+#| echo: false
+
+tbl_regiao <- renach_grouped_2023 |> 
+  group_by(sexo, regiao_habilitacao_atual) |> 
+  summarise(qtde_condutor = sum(qtde_condutor)) |> 
+  pivot_wider(names_from = sexo, values_from = qtde_condutor) |> 
+  mutate(
+    total = Feminino + Masculino,
+    perc_fem = scales::percent(Feminino / (total), accuracy = 1),
+    perc_masc = scales::percent(Masculino / (total), accuracy = 1),
+  ) |> 
+  select(
+    regiao_habilitacao_atual, Feminino, Masculino, perc_fem, perc_masc, total
+  ) |> 
+  ungroup()
+
+knitr::kable(
+  tbl_regiao,
+  format.args = list(big.mark = ".", decimal.mark = ","),
+  col.names = c(
+    "Região", "Feminino", "Masculino", "% Feminino", "% Masculino", "Total"
+  ),
+  caption = "Quantidade de Condutores Habilitados em 2023, por região"
+)
+```
+
+### Condutores Envolvidos em Sinistros de Trânsito em Rodovias Federais
+
+Fonte: @políciarodoviáriafederal2024
+
+#### Transporte geral
+
+```{r}
+#| label: prf-count
+#| echo: false
+
+prf_count <- prf_condutores_2023 |> 
+  count(sexo) |> 
+  drop_na() |> 
+  mutate(
+    percentual = n / sum(n),
+    percentual = scales::percent(percentual, accuracy = 1)
+  )
+
+knitr::kable(
+  prf_count,
+  format.args = list(big.mark = ".", decimal.mark = ","),
+  col.names = c(
+    "Gênero",
+    "Quantidade de condutores envolvidos",
+    "Percentual"
+  ),
+  caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito - Rodovias Federais"
+)
+```
+
+```{r}
+#| label: prf-regiao
+#| echo: false
+
+prf_regiao <- prf_condutores_2023 |> 
+  count(sexo, regiao) |> 
+  drop_na() |>
+  pivot_wider(names_from = sexo, values_from = n) |> 
+  mutate(
+    total = Feminino + Masculino,
+    perc_fem = scales::percent(Feminino / (total), accuracy = 1),
+    perc_masc = scales::percent(Masculino / (total), accuracy = 1),
+  ) |> 
+  select(
+    regiao, Feminino, Masculino, perc_fem, perc_masc, total
+  )
+
+knitr::kable(
+  prf_regiao,
+  format.args = list(big.mark = ".", decimal.mark = ","),
+  col.names = c(
+    "Região",
+    "Feminino",
+    "Masculino",
+    "% Feminino",
+    "% Masculino",
+    "Total"
+  ),
+  caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por Região - Rodovias Federais"
+)
+```
+
+```{r}
+#| label: prf-lesoes
+#| echo: false
+
+prf_lesoes <- prf_condutores_2023 |> 
+  count(sexo, estado_fisico) |> 
+  drop_na() |> 
+  pivot_wider(names_from = sexo, values_from = n) |> 
+  mutate(
+    perc_fem = Feminino / sum(Feminino),
+    perc_fem = scales::percent(perc_fem, accuracy = 1),
+    perc_masc = Masculino / sum(Masculino),
+    perc_masc = scales::percent(perc_masc, accuracy = 1)
+  )
+
+knitr::kable(
+  prf_lesoes,
+  format.args = list(big.mark = ".", decimal.mark = ","),
+  col.names = c(
+    "Tipo de lesão",
+    "Feminino",
+    "Masculino",
+    "% por tipo (Fem.)",
+    "% por tipo (Masc.)"
+  ),
+  caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por tipo de lesão - Rodovias Federais"
+)
+```
+
+#### Transporte de Cargas
+
+Sinistros de trânsito envolvendo mulheres motoristas de transporte de cargas (Caminhão + Caminhão Trator)
+
+```{r}
+#| label: carga-lesoes
+#| echo: false
+
+prf_carga <- prf_condutores_2023 |> 
+  filter(
+    sexo == "Feminino", tipo_veiculo %in% c("caminhão", "caminhão-trator")
+  )
+
+prf_carga |> 
+  count(estado_fisico) |> 
+  knitr::kable(
+    col.names = c("Tipo de lesão", "Quantidade de condutoras envolvidas"),
+    caption = "Quantidade de condutoras envolvidas em sinistros de trânsito - tipo de lesão"
+  )
+```
+
+```{r}
+#| label: carga-tipo
+#| echo: false
+
+prf_carga |> 
+  count(tipo_acidente, sort = TRUE) |> 
+  knitr::kable(
+    col.names = c("Tipo de sinistro", "Quantidade de condutoras envolvidas"),
+    caption = "Quantidade de condutoras envolvidas - tipo de sinistro"
+  )
+```
+
+#### Transporte de Passageiros
+
+Sinistros de trânsito envolvendo mulheres motoristas de transporte de passageiros (Ônibus + Microônibus)
+
+```{r}
+#| label: passageiro-lesoes
+#| echo: false
+
+prf_passageiro <- prf_condutores_2023 |> 
+  filter(
+    sexo == "Feminino", tipo_veiculo %in% c("ônibus", "microônibus")
+  )
+
+prf_passageiro |> 
+  count(estado_fisico) |> 
+  knitr::kable(
+    col.names = c("Tipo de lesão", "Quantidade de condutoras envolvidas"),
+    caption = "Quantidade de condutoras envolvidas em sinistros de trânsito - tipo de lesão"
+  )
+```
+
+
+```{r}
+#| label: passageiro-tipo
+#| echo: false
+
+prf_passageiro |> 
+  count(tipo_acidente, sort = TRUE) |> 
+  knitr::kable(
+    col.names = c("Tipo de sinistro", "Quantidade de condutoras envolvidas"),
+    caption = "Quantidade de condutoras envolvidas - tipo de sinistro"
+  )
+```
+
+## Referências {.unnumbered}
