@@ -1,5 +1,5 @@
 ---
-title: "Dados Mulheres no Trânsito Brasileiro"
+title: "Mulheres no Trânsito Brasileiro"
 format: onsvpub-html
 author: 
   - Pedro Augusto Borges dos Santos
@@ -16,6 +16,10 @@ bibliography: references.bib
 library(tidyverse)
 library(arrow)
 library(janitor)
+library(roadtrafficdeaths)
+library(onsvplot)
+library(plotly)
+library(glue)
 ```
 
 ```{r}
@@ -35,7 +39,9 @@ prf_condutores_2023 <- prf_vitimas_2023 |>
   mutate(
     regiao = case_when(
       uf %in% c("AM", "RR", "AP", "PA", "TO", "RO", "AC") ~ "Norte",
-      uf %in% c("MA", "PI", "CE", "RN", "PB", "PE", "AL", "SE", "BA") ~ "Nordeste",
+      uf %in% c(
+        "MA", "PI", "CE", "RN", "PB", "PE", "AL", "SE", "BA"
+      ) ~ "Nordeste",
       uf %in% c("MT", "MS", "GO", "DF") ~ "Centro-Oeste",
       uf %in% c("SP", "RJ", "MG", "ES") ~ "Sudeste",
       uf %in% c("PR", "RS", "SC") ~ "Sul",
@@ -58,41 +64,162 @@ renach_grouped_2023 <- renach_2023 |>
   select(regiao_habilitacao_atual, sexo, categoria, qt_condutor_historico) |> 
   group_by(regiao_habilitacao_atual, sexo, categoria) |> 
   summarise(qtde_condutor = sum(qt_condutor_historico))
+
+obitos2022 <- rtdeaths |> 
+  as_tibble() |> 
+  filter(ano_ocorrencia == 2022)
 ```
 
 ## Introdução
 
 Dados do ano de 2023.
 
-### Condutores Habilitados
+## Vítimas fatais
 
-Fonte: @ministériodostransportes2024
+### Pirâmide etária
 
 ```{r}
-#| label: cnh-count
+#| label: fig-piramide-etaria
+#| echo: false
+#| fig-cap: "Pirâmide etária das vítimas fatais no trânsito em 2022"
+
+tbl_piramide <- obitos2022 |> 
+  count(sexo_vitima, faixa_etaria_vitima) |> 
+  drop_na() |> 
+  mutate(
+    n = ifelse(sexo_vitima == "Feminino", n = -1 * n, n),
+    hovertext = glue("Sexo: {sexo_vitima}\nFaixa etária: {faixa_etaria_vitima}\nQuantidade de óbitos: {abs(n)}")
+  )
+
+piramide_plot <- 
+  ggplot(
+    tbl_piramide, 
+    aes(x = n, y = faixa_etaria_vitima, fill = sexo_vitima)
+  ) +
+  geom_col(aes(text = hovertext)) +
+  scale_x_continuous(
+    limits = c(-4000, 4000),
+    labels = c(4000, 2000, 0, 2000, 4000),
+    minor_breaks = NULL
+  ) +
+  scale_fill_manual(values = c(onsv_palette$blue, onsv_palette$yellow)) +
+  labs(x = NULL, y = NULL, fill = "Sexo da vítima:") +
+  theme_minimal()
+
+ggplotly(piramide_plot, tooltip = "text")
+
+```
+
+### Modal e faixa etária
+
+```{r}
+#| label: heatmap-modal
 #| echo: false
 
-tbl_count <- renach_grouped_2023 |> 
-  group_by(sexo) |> 
-  summarise(qtde_condutor = sum(qtde_condutor)) |> 
+tbl_masc <- obitos2022 |> 
+  filter(sexo_vitima == "Masculino") |> 
+  count(modal_vitima, faixa_etaria_vitima, .drop = FALSE) |> 
+  replace_na(list(n = 0)) |> 
+  drop_na() |> 
   mutate(
-    percentual = scales::percent(
-      qtde_condutor / sum(qtde_condutor), accuracy = 1
+    hovertext = glue(
+      "Modal: {modal_vitima}\nFaixa etária: {faixa_etaria_vitima}\nQuantidade de óbitos: {abs(n)}"
     )
   )
 
-knitr::kable(
-  tbl_count,
-  format.args = list(big.mark = ".", decimal.mark = ","),
-  col.names = c(
-    "Gênero",
-    "Quantidade de condutores",
-    "Percentual"
-  ),
-  type = "simple",
-  caption = "Quantidade de Condutores Habilitados em 2023"
+tbl_fem <- obitos2022 |> 
+  filter(sexo_vitima == "Feminino") |> 
+  count(modal_vitima, faixa_etaria_vitima, .drop = FALSE) |> 
+  replace_na(list(n = 0)) |> 
+  drop_na() |>
+  mutate(
+    hovertext = glue(
+      "Modal: {modal_vitima}\nFaixa etária: {faixa_etaria_vitima}\nQuantidade de óbitos: {abs(n)}"
+    )
+  )
+
+label_faixa_etaria <- c(
+  "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", "40-44",
+  "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80+"
 )
 ```
+
+::: {.panel-tabset}
+
+## Masculino
+
+```{r}
+#| label: fig-heatmap-modal-masc
+#| fig-cap: "Quantidade de óbitos por modal e faixa etária (masc.)"
+#| echo: false
+
+heat_masc <- 
+  ggplot(tbl_masc, aes(x = faixa_etaria_vitima, y = modal_vitima, fill = n)) +
+  geom_tile() +
+  geom_text(
+    aes(label = n),
+    color = ifelse(
+      tbl_masc$n > 1000,
+      "grey90",
+      "grey20"
+    ),
+    size = 3
+  ) +
+  theme_minimal(base_size = 10) +
+  labs(x = "Faixa etária", y = NULL) +
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_blank()
+  ) +
+  scale_fill_gradient(
+    high = onsv_palette$yellow,
+    low = "#f7dbb9"
+  ) +
+  scale_x_discrete(labels = label_faixa_etaria) +
+  coord_equal()
+
+ggplotly(heat_masc, tooltip = c("x", "y", "fill"))
+```
+
+## Feminino
+
+```{r}
+#| label: fig-heatmap-modal-fem
+#| fig-cap: "Quantidade de óbitos por modal e faixa etária (fem.)"
+#| echo: false
+
+heat_fem <- 
+  ggplot(tbl_fem, aes(x = faixa_etaria_vitima, y = modal_vitima, fill = n)) +
+  geom_tile() +
+  geom_text(
+    aes(label = n),
+    color = ifelse(
+      tbl_fem$n > 150,
+      "grey90",
+      "grey20"
+    ),
+    size = 3
+  ) +
+  theme_minimal(base_size = 10) +
+  labs(x = "Faixa etária", y = NULL) +
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_blank()
+  ) +
+  scale_fill_gradient(high = onsv_palette$blue, low = "#a2c6d8") +
+  scale_x_discrete(labels = label_faixa_etaria) +
+  coord_equal()
+
+ggplotly(heat_fem, tooltip = c("x", "y", "fill"))
+```
+
+:::
+
+## Condutores Habilitados
+
+Fonte: @ministériodostransportes2024
 
 ```{r}
 #| label: cnh-categoria
@@ -122,39 +249,11 @@ knitr::kable(
 ) 
 ```
 
-```{r}
-#| label: cnh-regiao
-#| echo: false
-
-tbl_regiao <- renach_grouped_2023 |> 
-  group_by(sexo, regiao_habilitacao_atual) |> 
-  summarise(qtde_condutor = sum(qtde_condutor)) |> 
-  pivot_wider(names_from = sexo, values_from = qtde_condutor) |> 
-  mutate(
-    total = Feminino + Masculino,
-    perc_fem = scales::percent(Feminino / (total), accuracy = 1),
-    perc_masc = scales::percent(Masculino / (total), accuracy = 1),
-  ) |> 
-  select(
-    regiao_habilitacao_atual, Feminino, Masculino, perc_fem, perc_masc, total
-  ) |> 
-  ungroup()
-
-knitr::kable(
-  tbl_regiao,
-  format.args = list(big.mark = ".", decimal.mark = ","),
-  col.names = c(
-    "Região", "Feminino", "Masculino", "% Feminino", "% Masculino", "Total"
-  ),
-  caption = "Quantidade de Condutores Habilitados em 2023, por região"
-)
-```
-
-### Condutores Envolvidos em Sinistros de Trânsito em Rodovias Federais
+## Condutores Envolvidos em Sinistros de Trânsito em Rodovias Federais
 
 Fonte: @políciarodoviáriafederal2024
 
-#### Transporte geral
+### Transporte geral
 
 ```{r}
 #| label: prf-count
@@ -241,7 +340,7 @@ knitr::kable(
 )
 ```
 
-#### Transporte de Cargas
+### Transporte de Cargas
 
 Sinistros de trânsito envolvendo mulheres motoristas de transporte de cargas (Caminhão + Caminhão Trator)
 
@@ -274,7 +373,7 @@ prf_carga |>
   )
 ```
 
-#### Transporte de Passageiros
+### Transporte de Passageiros
 
 Sinistros de trânsito envolvendo mulheres motoristas de transporte de passageiros (Ônibus + Microônibus)
 

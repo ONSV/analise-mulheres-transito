@@ -1197,6 +1197,21 @@
       ],
       "Hash": "9b148e7f95d33aac01f31282d49e4f44"
     },
+    "roadtrafficdeaths": {
+      "Package": "roadtrafficdeaths",
+      "Version": "0.3.1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "pabsantos",
+      "RemoteRepo": "roadtrafficdeaths",
+      "RemoteRef": "main",
+      "RemoteSha": "3d9ebb6fa5c4ae9339af5915c613e319df275a91",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "cc16ee749c782e00531a06194ef5a270"
+    },
     "rprojroot": {
       "Package": "rprojroot",
       "Version": "2.0.4",
