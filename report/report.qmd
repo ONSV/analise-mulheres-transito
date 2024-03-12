@@ -4,9 +4,9 @@ format: onsvpub-html
 author: 
   - Pedro Augusto Borges dos Santos
 date: last-modified
-editor_options: 
-  chunk_output_type: console
 bibliography: references.bib
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r}
@@ -20,6 +20,7 @@ library(roadtrafficdeaths)
 library(onsvplot)
 library(plotly)
 library(glue)
+library(scales)
 ```
 
 ```{r}
@@ -236,6 +237,29 @@ ggplotly(heat_fem, tooltip = c("x", "y", "fill"))
 Fonte: @ministériodostransportes2024
 
 ### Evolução
+
+```{r}
+evol_cond <- renach |>
+  rename(regiao = `Região Habilitação Atual`,
+         condutores = `Qt. Condutor Histórico`) |>
+  mutate(ano = as.numeric(ano)) |>
+  summarise(.by = c(ano, Sexo, regiao),
+            condutores = sum(condutores)) |>
+  ggplot(aes(ano, condutores, color = regiao)) +
+  geom_line() +
+  geom_point(aes(text = paste0(
+    "Condutores: ", format(condutores, big.mark = ".")
+  ))) +
+  facet_wrap(vars(Sexo), ) +
+  scale_y_continuous(labels = label_comma(big.mark = ".",
+                                          decimal.mark = ",")) +
+  labs(y = "Condutores", x = NULL, color = "Região") +
+  scale_color_manual(values = as_vector(unname(onsv_palette))) +
+  theme_minimal()
+
+ggplotly(evol_cond, tooltip = "text")
+```
+
 
 <!-- ```{r} -->
 <!-- #| label: cnh-categoria -->
