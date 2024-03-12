@@ -55,11 +55,25 @@ prf_condutores_2023 <- prf_vitimas_2023 |>
   ) |> 
   collect()
 
-renach_path <- here::here("data", "condutores_habilitados_2023_12.csv")
+renach_path <- list.files(
+  here::here("data"), 
+  pattern = "^condutores", 
+  full.names = TRUE
+)
 
-renach_2023 <- read_csv2(renach_path)
+renach_years <- seq(2018, 2023) |> as.character()
 
-renach_grouped_2023 <- renach_2023 |> 
+renach_list <- map(renach_path, read_csv2)
+
+add_year <- function(df, year) {
+  df |> 
+    mutate(ano = year)
+}
+
+renach <- map2(renach_list, renach_years, add_year) |> 
+  reduce(bind_rows)
+
+renach_grouped <- renach |> 
   clean_names() |> 
   select(regiao_habilitacao_atual, sexo, categoria, qt_condutor_historico) |> 
   group_by(regiao_habilitacao_atual, sexo, categoria) |> 
@@ -221,190 +235,194 @@ ggplotly(heat_fem, tooltip = c("x", "y", "fill"))
 
 Fonte: @ministériodostransportes2024
 
-```{r}
-#| label: cnh-categoria
-#| echo: false
+### Evolução
 
-tbl_categoria <- renach_grouped_2023 |> 
-  group_by(sexo, categoria) |> 
-  summarise(qtde_condutor = sum(qtde_condutor)) |> 
-  pivot_wider(names_from = sexo, values_from = qtde_condutor) |> 
-  mutate(
-    total = Feminino + Masculino,
-    perc_fem = scales::percent(Feminino / (total), accuracy = 1),
-    perc_masc = scales::percent(Masculino / (total), accuracy = 1),
-  ) |> 
-  select(categoria, Feminino, Masculino, perc_fem, perc_masc, total) |> 
-  ungroup()
+<!-- ```{r} -->
+<!-- #| label: cnh-categoria -->
+<!-- #| echo: false -->
 
-knitr::kable(
-  tbl_categoria,
-  format.args = list(big.mark = ".", decimal.mark = ","),
-  format = "pipe",
-  digits = 0,
-  col.names = c(
-    "Categoria", "Feminino", "Masculino", "% Feminino", "% Masculino", "Total"
-  ),
-  caption = "Quantidade de Condutores Habilitados em 2023, por categoria"
-) 
-```
+<!-- tbl_categoria <- renach_grouped_2023 |>  -->
+<!--   group_by(sexo, categoria) |>  -->
+<!--   summarise(qtde_condutor = sum(qtde_condutor)) |>  -->
+<!--   pivot_wider(names_from = sexo, values_from = qtde_condutor) |>  -->
+<!--   mutate( -->
+<!--     total = Feminino + Masculino, -->
+<!--     perc_fem = scales::percent(Feminino / (total), accuracy = 1), -->
+<!--     perc_masc = scales::percent(Masculino / (total), accuracy = 1), -->
+<!--   ) |>  -->
+<!--   select(categoria, Feminino, Masculino, perc_fem, perc_masc, total) |>  -->
+<!--   ungroup() -->
+
+<!-- knitr::kable( -->
+<!--   tbl_categoria, -->
+<!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
+<!--   format = "pipe", -->
+<!--   digits = 0, -->
+<!--   col.names = c( -->
+<!--     "Categoria", "Feminino", "Masculino", "% Feminino", "% Masculino", "Total" -->
+<!--   ), -->
+<!--   caption = "Quantidade de Condutores Habilitados em 2023, por categoria" -->
+<!-- )  -->
+<!-- ``` -->
+
+### Quantidade Atual
 
 ## Condutores Envolvidos em Sinistros de Trânsito em Rodovias Federais
 
-Fonte: @políciarodoviáriafederal2024
+<!-- Fonte: @políciarodoviáriafederal2024 -->
 
 ### Transporte geral
 
-```{r}
-#| label: prf-count
-#| echo: false
+<!-- ```{r} -->
+<!-- #| label: prf-count -->
+<!-- #| echo: false -->
 
-prf_count <- prf_condutores_2023 |> 
-  count(sexo) |> 
-  drop_na() |> 
-  mutate(
-    percentual = n / sum(n),
-    percentual = scales::percent(percentual, accuracy = 1)
-  )
+<!-- prf_count <- prf_condutores_2023 |>  -->
+<!--   count(sexo) |>  -->
+<!--   drop_na() |>  -->
+<!--   mutate( -->
+<!--     percentual = n / sum(n), -->
+<!--     percentual = scales::percent(percentual, accuracy = 1) -->
+<!--   ) -->
 
-knitr::kable(
-  prf_count,
-  format.args = list(big.mark = ".", decimal.mark = ","),
-  col.names = c(
-    "Gênero",
-    "Quantidade de condutores envolvidos",
-    "Percentual"
-  ),
-  caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito - Rodovias Federais"
-)
-```
+<!-- knitr::kable( -->
+<!--   prf_count, -->
+<!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
+<!--   col.names = c( -->
+<!--     "Gênero", -->
+<!--     "Quantidade de condutores envolvidos", -->
+<!--     "Percentual" -->
+<!--   ), -->
+<!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito - Rodovias Federais" -->
+<!-- ) -->
+<!-- ``` -->
 
-```{r}
-#| label: prf-regiao
-#| echo: false
+<!-- ```{r} -->
+<!-- #| label: prf-regiao -->
+<!-- #| echo: false -->
 
-prf_regiao <- prf_condutores_2023 |> 
-  count(sexo, regiao) |> 
-  drop_na() |>
-  pivot_wider(names_from = sexo, values_from = n) |> 
-  mutate(
-    total = Feminino + Masculino,
-    perc_fem = scales::percent(Feminino / (total), accuracy = 1),
-    perc_masc = scales::percent(Masculino / (total), accuracy = 1),
-  ) |> 
-  select(
-    regiao, Feminino, Masculino, perc_fem, perc_masc, total
-  )
+<!-- prf_regiao <- prf_condutores_2023 |>  -->
+<!--   count(sexo, regiao) |>  -->
+<!--   drop_na() |> -->
+<!--   pivot_wider(names_from = sexo, values_from = n) |>  -->
+<!--   mutate( -->
+<!--     total = Feminino + Masculino, -->
+<!--     perc_fem = scales::percent(Feminino / (total), accuracy = 1), -->
+<!--     perc_masc = scales::percent(Masculino / (total), accuracy = 1), -->
+<!--   ) |>  -->
+<!--   select( -->
+<!--     regiao, Feminino, Masculino, perc_fem, perc_masc, total -->
+<!--   ) -->
 
-knitr::kable(
-  prf_regiao,
-  format.args = list(big.mark = ".", decimal.mark = ","),
-  col.names = c(
-    "Região",
-    "Feminino",
-    "Masculino",
-    "% Feminino",
-    "% Masculino",
-    "Total"
-  ),
-  caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por Região - Rodovias Federais"
-)
-```
+<!-- knitr::kable( -->
+<!--   prf_regiao, -->
+<!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
+<!--   col.names = c( -->
+<!--     "Região", -->
+<!--     "Feminino", -->
+<!--     "Masculino", -->
+<!--     "% Feminino", -->
+<!--     "% Masculino", -->
+<!--     "Total" -->
+<!--   ), -->
+<!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por Região - Rodovias Federais" -->
+<!-- ) -->
+<!-- ``` -->
 
-```{r}
-#| label: prf-lesoes
-#| echo: false
+<!-- ```{r} -->
+<!-- #| label: prf-lesoes -->
+<!-- #| echo: false -->
 
-prf_lesoes <- prf_condutores_2023 |> 
-  count(sexo, estado_fisico) |> 
-  drop_na() |> 
-  pivot_wider(names_from = sexo, values_from = n) |> 
-  mutate(
-    perc_fem = Feminino / sum(Feminino),
-    perc_fem = scales::percent(perc_fem, accuracy = 1),
-    perc_masc = Masculino / sum(Masculino),
-    perc_masc = scales::percent(perc_masc, accuracy = 1)
-  )
+<!-- prf_lesoes <- prf_condutores_2023 |>  -->
+<!--   count(sexo, estado_fisico) |>  -->
+<!--   drop_na() |>  -->
+<!--   pivot_wider(names_from = sexo, values_from = n) |>  -->
+<!--   mutate( -->
+<!--     perc_fem = Feminino / sum(Feminino), -->
+<!--     perc_fem = scales::percent(perc_fem, accuracy = 1), -->
+<!--     perc_masc = Masculino / sum(Masculino), -->
+<!--     perc_masc = scales::percent(perc_masc, accuracy = 1) -->
+<!--   ) -->
 
-knitr::kable(
-  prf_lesoes,
-  format.args = list(big.mark = ".", decimal.mark = ","),
-  col.names = c(
-    "Tipo de lesão",
-    "Feminino",
-    "Masculino",
-    "% por tipo (Fem.)",
-    "% por tipo (Masc.)"
-  ),
-  caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por tipo de lesão - Rodovias Federais"
-)
-```
+<!-- knitr::kable( -->
+<!--   prf_lesoes, -->
+<!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
+<!--   col.names = c( -->
+<!--     "Tipo de lesão", -->
+<!--     "Feminino", -->
+<!--     "Masculino", -->
+<!--     "% por tipo (Fem.)", -->
+<!--     "% por tipo (Masc.)" -->
+<!--   ), -->
+<!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por tipo de lesão - Rodovias Federais" -->
+<!-- ) -->
+<!-- ``` -->
 
 ### Transporte de Cargas
 
-Sinistros de trânsito envolvendo mulheres motoristas de transporte de cargas (Caminhão + Caminhão Trator)
+<!-- Sinistros de trânsito envolvendo mulheres motoristas de transporte de cargas (Caminhão + Caminhão Trator) -->
 
-```{r}
-#| label: carga-lesoes
-#| echo: false
+<!-- ```{r} -->
+<!-- #| label: carga-lesoes -->
+<!-- #| echo: false -->
 
-prf_carga <- prf_condutores_2023 |> 
-  filter(
-    sexo == "Feminino", tipo_veiculo %in% c("caminhão", "caminhão-trator")
-  )
+<!-- prf_carga <- prf_condutores_2023 |>  -->
+<!--   filter( -->
+<!--     sexo == "Feminino", tipo_veiculo %in% c("caminhão", "caminhão-trator") -->
+<!--   ) -->
 
-prf_carga |> 
-  count(estado_fisico) |> 
-  knitr::kable(
-    col.names = c("Tipo de lesão", "Quantidade de condutoras envolvidas"),
-    caption = "Quantidade de condutoras envolvidas em sinistros de trânsito - tipo de lesão"
-  )
-```
+<!-- prf_carga |>  -->
+<!--   count(estado_fisico) |>  -->
+<!--   knitr::kable( -->
+<!--     col.names = c("Tipo de lesão", "Quantidade de condutoras envolvidas"), -->
+<!--     caption = "Quantidade de condutoras envolvidas em sinistros de trânsito - tipo de lesão" -->
+<!--   ) -->
+<!-- ``` -->
 
-```{r}
-#| label: carga-tipo
-#| echo: false
+<!-- ```{r} -->
+<!-- #| label: carga-tipo -->
+<!-- #| echo: false -->
 
-prf_carga |> 
-  count(tipo_acidente, sort = TRUE) |> 
-  knitr::kable(
-    col.names = c("Tipo de sinistro", "Quantidade de condutoras envolvidas"),
-    caption = "Quantidade de condutoras envolvidas - tipo de sinistro"
-  )
-```
+<!-- prf_carga |>  -->
+<!--   count(tipo_acidente, sort = TRUE) |>  -->
+<!--   knitr::kable( -->
+<!--     col.names = c("Tipo de sinistro", "Quantidade de condutoras envolvidas"), -->
+<!--     caption = "Quantidade de condutoras envolvidas - tipo de sinistro" -->
+<!--   ) -->
+<!-- ``` -->
 
 ### Transporte de Passageiros
 
-Sinistros de trânsito envolvendo mulheres motoristas de transporte de passageiros (Ônibus + Microônibus)
+<!-- Sinistros de trânsito envolvendo mulheres motoristas de transporte de passageiros (Ônibus + Microônibus) -->
 
-```{r}
-#| label: passageiro-lesoes
-#| echo: false
+<!-- ```{r} -->
+<!-- #| label: passageiro-lesoes -->
+<!-- #| echo: false -->
 
-prf_passageiro <- prf_condutores_2023 |> 
-  filter(
-    sexo == "Feminino", tipo_veiculo %in% c("ônibus", "microônibus")
-  )
+<!-- prf_passageiro <- prf_condutores_2023 |>  -->
+<!--   filter( -->
+<!--     sexo == "Feminino", tipo_veiculo %in% c("ônibus", "microônibus") -->
+<!--   ) -->
 
-prf_passageiro |> 
-  count(estado_fisico) |> 
-  knitr::kable(
-    col.names = c("Tipo de lesão", "Quantidade de condutoras envolvidas"),
-    caption = "Quantidade de condutoras envolvidas em sinistros de trânsito - tipo de lesão"
-  )
-```
+<!-- prf_passageiro |>  -->
+<!--   count(estado_fisico) |>  -->
+<!--   knitr::kable( -->
+<!--     col.names = c("Tipo de lesão", "Quantidade de condutoras envolvidas"), -->
+<!--     caption = "Quantidade de condutoras envolvidas em sinistros de trânsito - tipo de lesão" -->
+<!--   ) -->
+<!-- ``` -->
 
 
-```{r}
-#| label: passageiro-tipo
-#| echo: false
+<!-- ```{r} -->
+<!-- #| label: passageiro-tipo -->
+<!-- #| echo: false -->
 
-prf_passageiro |> 
-  count(tipo_acidente, sort = TRUE) |> 
-  knitr::kable(
-    col.names = c("Tipo de sinistro", "Quantidade de condutoras envolvidas"),
-    caption = "Quantidade de condutoras envolvidas - tipo de sinistro"
-  )
-```
+<!-- prf_passageiro |>  -->
+<!--   count(tipo_acidente, sort = TRUE) |>  -->
+<!--   knitr::kable( -->
+<!--     col.names = c("Tipo de sinistro", "Quantidade de condutoras envolvidas"), -->
+<!--     caption = "Quantidade de condutoras envolvidas - tipo de sinistro" -->
+<!--   ) -->
+<!-- ``` -->
 
 ## Referências {.unnumbered}
