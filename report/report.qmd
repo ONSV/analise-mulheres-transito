@@ -256,38 +256,19 @@ renach |>
     geom_col(aes(fill = sexo), position = "dodge")
 
 renach |> 
-  summarise(.by = c(ano, Sexo, `Faixa Etária`), condutores = sum(`Qt. Condutor Histórico`)) |> 
-  mutate(faixa_etaria = as_factor(`Faixa Etária`),
-         ano = as.numeric(ano)) |>  
-  ggplot(aes(ano, condutores, color = faixa_etaria)) +
-    geom_line() +
-    geom_point() +
-    facet_wrap(vars(Sexo)) +
-    theme_minimal() +
-    theme(panel.spacing = unit(0.5, "cm"))
-```
-
-
-```{r}
-evol_cond <- renach |>
-  rename(regiao = `Região Habilitação Atual`,
-         condutores = `Qt. Condutor Histórico`) |>
-  mutate(ano = as.numeric(ano)) |>
-  summarise(.by = c(ano, Sexo, regiao),
-            condutores = sum(condutores)) |>
-  ggplot(aes(ano, condutores, color = regiao)) +
-  geom_line() +
-  geom_point(aes(text = paste0(
-    "Condutores: ", format(condutores, big.mark = ".")
-  ))) +
-  facet_wrap(vars(Sexo), ) +
-  scale_y_continuous(labels = label_comma(big.mark = ".",
-                                          decimal.mark = ",")) +
-  labs(y = "Condutores", x = NULL, color = "Região") +
-  scale_color_manual(values = as_vector(unname(onsv_palette))) +
-  theme_minimal()
-
-ggplotly(evol_cond, tooltip = "text")
+  rename(
+    faixa_etaria = `Faixa Etária`,
+    condutores = `Qt. Condutor Histórico`
+  ) |> 
+  mutate(
+    Categoria = if_else(grepl("X", Categoria), 
+    "X-Condutor Ciclomotor",
+    Categoria)
+  ) |> 
+  summarise(.by = c(ano, Sexo, Categoria), condutores = sum(condutores)) |> 
+  ggplot(aes(x = ano, condutores, fill = Categoria)) +
+    geom_bar(stat = "identity") +
+    facet_wrap(vars(Sexo), scale = "free_y")
 ```
 
 
@@ -321,11 +302,66 @@ ggplotly(evol_cond, tooltip = "text")
 
 ### Quantidade Atual
 
+```{r}
+renach |> 
+  rename(
+    faixa_etaria = `Faixa Etária`,
+    condutores = `Qt. Condutor Histórico`
+  ) |> 
+  filter(ano == "2023") |> 
+  mutate(
+    Categoria = if_else(grepl("X", Categoria), 
+    "X-Condutor Ciclomotor",
+    Categoria)
+  ) |> 
+  summarise(
+    .by = c(faixa_etaria, Categoria, Sexo),
+    condutores = sum(condutores)
+  ) |>  
+  ggplot(aes(faixa_etaria, condutores, fill = Categoria)) +
+    geom_col(color = "white") +
+    facet_wrap(vars(Sexo)) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+    labs(x = NULL, y = NULL) +
+    coord_flip()
+
+renach |> 
+  rename(
+    faixa_etaria = `Faixa Etária`,
+    condutores = `Qt. Condutor Histórico`
+  ) |> 
+  filter(ano == "2023") |> 
+  summarise(.by = c(faixa_etaria, Sexo), condutores = sum(condutores)) |> 
+  ggplot(aes(condutores, faixa_etaria, fill = Sexo)) +
+    geom_col(position = "dodge")
+
+renach |> 
+  rename(
+    faixa_etaria = `Faixa Etária`,
+    condutores = `Qt. Condutor Histórico`
+  ) |> 
+  filter(ano == "2023") |> 
+  mutate(
+    Categoria = if_else(grepl("X", Categoria), 
+    "X-Condutor Ciclomotor",
+    Categoria)
+  ) |> 
+  summarise(.by = c(Categoria, Sexo), condutores = sum(condutores)) |> 
+  ggplot(aes(condutores, Categoria, fill = Sexo)) +
+    geom_col(position = "dodge")
+```
+
 ## Condutores Envolvidos em Sinistros de Trânsito em Rodovias Federais
 
 <!-- Fonte: @políciarodoviáriafederal2024 -->
 
 ### Transporte geral
+
+```{r}
+
+```
+
 
 <!-- ```{r} -->
 <!-- #| label: prf-count -->
