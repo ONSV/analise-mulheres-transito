@@ -268,7 +268,9 @@ renach |>
   summarise(.by = c(ano, Sexo, Categoria), condutores = sum(condutores)) |> 
   ggplot(aes(x = ano, condutores, fill = Categoria)) +
     geom_bar(stat = "identity") +
-    facet_wrap(vars(Sexo), scale = "free_y")
+    facet_wrap(vars(Sexo), scale = "free_y") +
+    scale_fill_manual(values = as_vector(unname(onsv_palette))) +
+    theme_minimal()
 ```
 
 
@@ -319,10 +321,11 @@ renach |>
     condutores = sum(condutores)
   ) |>  
   ggplot(aes(faixa_etaria, condutores, fill = Categoria)) +
-    geom_col(color = "white") +
+    geom_bar(stat = "identity") +
     facet_wrap(vars(Sexo)) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+    scale_fill_manual(values = as_vector(unname(onsv_palette))) +
     labs(x = NULL, y = NULL) +
     coord_flip()
 
@@ -359,7 +362,70 @@ renach |>
 ### Transporte geral
 
 ```{r}
+heat_prf_geral_fem <- 
+  prf_condutores_2023 |>
+  summarise(.by = c(tipo_acidente, sexo, estado_fisico),
+            n = n()) |>
+  drop_na(sexo, tipo_acidente) |>
+  complete(
+    tipo_acidente = prf_condutores_2023$tipo_acidente,
+    sexo = prf_condutores_2023$sexo,
+    estado_fisico = prf_condutores_2023$estado_fisico,
+    fill = list(n = 0)
+  ) |>
+  arrange(sexo, tipo_acidente, estado_fisico) |>
+  drop_na() |>
+  mutate(tipo_acidente = str_to_title(tipo_acidente)) |> 
+  filter(sexo == "Feminino") |> 
+  ggplot(aes(estado_fisico, tipo_acidente, fill = n)) +
+    geom_tile() +
+    geom_text(aes(label = n, 
+                  color = ifelse(n > max(n)/2, "grey90", "black")), 
+              size = 3) +
+    scale_fill_gradient(high = onsv_palette$blue, low = "#a2c6d8") +
+    scale_color_identity() +
+    theme_minimal() +
+    labs(x = NULL, y = NULL) +
+    theme(legend.position = "none")
 
+heat_prf_geral_masc <- 
+  prf_condutores_2023 |>
+  summarise(.by = c(tipo_acidente, sexo, estado_fisico),
+            n = n()) |>
+  drop_na(sexo, tipo_acidente) |>
+  complete(
+    tipo_acidente = prf_condutores_2023$tipo_acidente,
+    sexo = prf_condutores_2023$sexo,
+    estado_fisico = prf_condutores_2023$estado_fisico,
+    fill = list(n = 0)
+  ) |>
+  arrange(sexo, tipo_acidente, estado_fisico) |>
+  drop_na() |>
+  mutate(tipo_acidente = str_to_title(tipo_acidente)) |> 
+  filter(sexo == "Masculino") |> 
+  ggplot(aes(estado_fisico, tipo_acidente, fill = n)) +
+    geom_tile() +
+    geom_text(aes(label = n),
+              color = "black",
+              size = 3) +
+    scale_fill_gradient(high = onsv_palette$yellow, low = "#f7dbb9") +
+    scale_color_identity() +
+    theme_minimal() +
+    labs(x = NULL, y = NULL) +
+    theme(legend.position = "none")
+    
+ggplotly(heat_prf_geral_fem, tooltip = "text")
+ggplotly(heat_prf_geral_masc, tooltip = "text")
+```
+
+```{r}
+prf_condutores_2023 |> 
+  summarise(.by = c(sexo, estado_fisico), n = n()) |> 
+  drop_na() |> 
+  pivot_wider(names_from = estado_fisico, values_from = n) |> 
+  mutate(Total = Ferido + Ileso + `Óbito`,
+         ObsPorTotal = `Óbito`/Total * 100) |> 
+  gt()
 ```
 
 
