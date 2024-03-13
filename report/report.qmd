@@ -239,6 +239,36 @@ Fonte: @ministériodostransportes2024
 ### Evolução
 
 ```{r}
+renach |> 
+  summarise(.by = c(ano, Sexo), condutores = sum(`Qt. Condutor Histórico`)) |> 
+  ggplot(aes(ano, condutores)) +
+    geom_col(aes(fill = Sexo), position = "dodge")
+
+renach |> 
+  summarise(.by = c(ano, Sexo), condutores = sum(`Qt. Condutor Histórico`)) |> 
+  pivot_wider(names_from = Sexo, values_from = condutores) |> 
+  mutate(Masculino = Masculino - lag(Masculino),
+         Feminino = Feminino - lag(Feminino)) |> 
+  pivot_longer(c(Masculino, Feminino), names_to = "sexo",
+               values_to = "condutores") |> 
+  drop_na() |> 
+  ggplot(aes(ano, condutores)) +
+    geom_col(aes(fill = sexo), position = "dodge")
+
+renach |> 
+  summarise(.by = c(ano, Sexo, `Faixa Etária`), condutores = sum(`Qt. Condutor Histórico`)) |> 
+  mutate(faixa_etaria = as_factor(`Faixa Etária`),
+         ano = as.numeric(ano)) |>  
+  ggplot(aes(ano, condutores, color = faixa_etaria)) +
+    geom_line() +
+    geom_point() +
+    facet_wrap(vars(Sexo)) +
+    theme_minimal() +
+    theme(panel.spacing = unit(0.5, "cm"))
+```
+
+
+```{r}
 evol_cond <- renach |>
   rename(regiao = `Região Habilitação Atual`,
          condutores = `Qt. Condutor Histórico`) |>
