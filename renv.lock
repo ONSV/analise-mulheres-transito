@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.3.1",
+    "Version": "4.3.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -76,7 +76,7 @@
       "Package": "Rcpp",
       "Version": "1.0.12",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "methods",
         "utils"
@@ -866,7 +866,7 @@
       "Package": "later",
       "Version": "1.3.2",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "Rcpp",
         "rlang"
@@ -892,7 +892,7 @@
       "Package": "lazyeval",
       "Version": "0.2.2",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "R"
       ],
@@ -1017,14 +1017,19 @@
     },
     "onsvplot": {
       "Package": "onsvplot",
-      "Version": "0.3.2",
-      "Source": "Repository",
-      "Repository": "RSPM",
+      "Version": "0.5.1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "pabsantos",
+      "RemoteRepo": "onsvplot",
+      "RemoteRef": "main",
+      "RemoteSha": "b8c82bb42bc179f1cf59a3793381d00a0245cb6f",
       "Requirements": [
         "R",
         "ggplot2"
       ],
-      "Hash": "9baeca3fb8226208650ebaf062f2ae73"
+      "Hash": "e363b335ed625f615df945023264b180"
     },
     "openssl": {
       "Package": "openssl",
@@ -1136,7 +1141,7 @@
       "Package": "promises",
       "Version": "1.2.1",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "R6",
         "Rcpp",

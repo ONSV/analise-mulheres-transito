@@ -1,8 +1,10 @@
 ---
 title: "Mulheres no Trânsito Brasileiro"
+title-block-banner: true
 format: onsvpub-html
 author: 
   - Pedro Augusto Borges dos Santos
+  - João Pedro Melani Saraiva
 date: last-modified
 bibliography: references.bib
 editor_options: 
@@ -22,8 +24,11 @@ library(plotly)
 library(glue)
 library(scales)
 library(gt)
+<<<<<<< HEAD
 
 options(scipen = 99999999)
+=======
+>>>>>>> 4566c6f4f3601fd8efbca3dc12d35be578718562
 ```
 
 ```{r}
@@ -90,11 +95,37 @@ obitos2022 <- rtdeaths |>
 
 ## Introdução
 
-Dados do ano de 2023.
+O presente relatório inclui um conjunto de dados ilustrando algumas diferenças entre a presença das mulheres e dos homens no trânsito brasileiro. A seguir, a @sec-vítimas-fatais inclui dados sobre as vítimas fatais no trânsito brasileiro; a @sec-condutores-habilitados traz dados sobre a quantidade de condutores habilitados nos últimos anos e a @sec-prf apresenta dados sobre condutores envolvidos em sinistros de trânsito em rodovias federais.
 
-## Vítimas fatais
+Todos os dados e código utilizado nesse relatório estão disponibilizados no respectivo [repositório](https://github.com/ONSV/analise-mulheres-transito){target="_blank"} do GitHub do Observatório.
+
+## Vítimas fatais {#sec-vítimas-fatais}
+
+Os dados sobre as vítimas fatais no trânsito brasileiro foram extraídas do Sistema de Informações de Mortalidade (SIM) do @ministériodasaúde2019, considerando o ano de 2022 – o último com os dados consolidados até a publicação deste conteúdo. Os dados foram coletados com auxílio do pacote `microdatasus` [@saldanha2019] e armazenados pelo pacote `roadtrafficdeaths` [@santosRoadtrafficdeathsRoadTraffic2023].
 
 ### Pirâmide etária
+
+```{r}
+#| label: calc-vitimas
+#| echo: false
+
+obitos_totais <- nrow(obitos2022)
+
+obitos_mulher <- length(obitos2022$sexo_vitima[obitos2022$sexo_vitima == "Feminino"])
+
+percentual_mulher <- scales::percent(obitos_mulher / obitos_totais)
+
+obitos_mulher_20_24 <- obitos2022 |> 
+  filter(sexo_vitima == "Feminino") |> 
+  count(faixa_etaria_vitima) |> 
+  pull(n) |> 
+  max()
+
+```
+
+O gráfico da @fig-piramide-etaria a seguir apresenta a pirâmide etária das vítimas fatais no trânsito brasileiro em 2022, agrupados a partir de duas características: faixa etária e sexo da vítima.
+
+Das `r obitos_totais` vítimas fatais de 2022, `r percentual_mulher` eram do sexo feminino. A principal faixa etária das vítimas do sexo feminino é a de idade entre 20 e 24 anos, com `r obitos_mulher_20_24` óbitos.
 
 ```{r}
 #| label: fig-piramide-etaria
@@ -128,7 +159,9 @@ ggplotly(piramide_plot, tooltip = "text")
 
 ```
 
-### Modal e faixa etária
+### Modo de transporte e faixa etária
+
+Os gráficos da @fig-heatmap-modal-masc e @fig-heatmap-modal-fem apresentam a quantidade de vítimas fatais, com agrupamento por faixa etária e modo de transporte da vítima. Considerando as vítimas do sexo feminino, o principal grupo de vítimas são as ocupantes de motocicleta com idade entre 20 e 24, somando uma quantidade de 245 óbitos. Outro grupo de destaque são as ocupantes de automóvel entre 25 e 34 anos e as pedestres acima de 60 anos de idade.
 
 ```{r}
 #| label: heatmap-modal
@@ -162,8 +195,7 @@ label_faixa_etaria <- c(
 )
 ```
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## Masculino
 
 ```{r}
@@ -232,10 +264,9 @@ heat_fem <-
 
 ggplotly(heat_fem, tooltip = c("x", "y", "fill"))
 ```
-
 :::
 
-## Condutores Habilitados
+## Condutores habilitados {#sec-condutores-habilitados}
 
 Fonte: @ministériodostransportes2024
 
@@ -282,36 +313,57 @@ renach |>
     theme_minimal()
 ```
 
-
 <!-- ```{r} -->
+
 <!-- #| label: cnh-categoria -->
+
 <!-- #| echo: false -->
 
 <!-- tbl_categoria <- renach_grouped_2023 |>  -->
+
 <!--   group_by(sexo, categoria) |>  -->
+
 <!--   summarise(qtde_condutor = sum(qtde_condutor)) |>  -->
+
 <!--   pivot_wider(names_from = sexo, values_from = qtde_condutor) |>  -->
+
 <!--   mutate( -->
+
 <!--     total = Feminino + Masculino, -->
+
 <!--     perc_fem = scales::percent(Feminino / (total), accuracy = 1), -->
+
 <!--     perc_masc = scales::percent(Masculino / (total), accuracy = 1), -->
+
 <!--   ) |>  -->
+
 <!--   select(categoria, Feminino, Masculino, perc_fem, perc_masc, total) |>  -->
+
 <!--   ungroup() -->
 
 <!-- knitr::kable( -->
+
 <!--   tbl_categoria, -->
+
 <!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
+
 <!--   format = "pipe", -->
+
 <!--   digits = 0, -->
+
 <!--   col.names = c( -->
+
 <!--     "Categoria", "Feminino", "Masculino", "% Feminino", "% Masculino", "Total" -->
+
 <!--   ), -->
+
 <!--   caption = "Quantidade de Condutores Habilitados em 2023, por categoria" -->
+
 <!-- )  -->
+
 <!-- ``` -->
 
-### Quantidade Atual
+### Quantidade atual
 
 ```{r}
 renach |> 
@@ -402,7 +454,7 @@ renach |>
     theme_minimal()
 ```
 
-## Condutores Envolvidos em Sinistros de Trânsito em Rodovias Federais
+## Condutores envolvidos em sinistros em rodovias federais {#sec-prf}
 
 <!-- Fonte: @políciarodoviáriafederal2024 -->
 
@@ -465,93 +517,159 @@ prf_condutores_2023 |>
   )
 ```
 
-
 <!-- ```{r} -->
+
 <!-- #| label: prf-count -->
+
 <!-- #| echo: false -->
 
 <!-- prf_count <- prf_condutores_2023 |>  -->
+
 <!--   count(sexo) |>  -->
+
 <!--   drop_na() |>  -->
+
 <!--   mutate( -->
+
 <!--     percentual = n / sum(n), -->
+
 <!--     percentual = scales::percent(percentual, accuracy = 1) -->
+
 <!--   ) -->
 
 <!-- knitr::kable( -->
+
 <!--   prf_count, -->
+
 <!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
+
 <!--   col.names = c( -->
+
 <!--     "Gênero", -->
+
 <!--     "Quantidade de condutores envolvidos", -->
+
 <!--     "Percentual" -->
+
 <!--   ), -->
+
 <!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito - Rodovias Federais" -->
+
 <!-- ) -->
+
 <!-- ``` -->
 
 <!-- ```{r} -->
+
 <!-- #| label: prf-regiao -->
+
 <!-- #| echo: false -->
 
 <!-- prf_regiao <- prf_condutores_2023 |>  -->
+
 <!--   count(sexo, regiao) |>  -->
+
 <!--   drop_na() |> -->
+
 <!--   pivot_wider(names_from = sexo, values_from = n) |>  -->
+
 <!--   mutate( -->
+
 <!--     total = Feminino + Masculino, -->
+
 <!--     perc_fem = scales::percent(Feminino / (total), accuracy = 1), -->
+
 <!--     perc_masc = scales::percent(Masculino / (total), accuracy = 1), -->
+
 <!--   ) |>  -->
+
 <!--   select( -->
+
 <!--     regiao, Feminino, Masculino, perc_fem, perc_masc, total -->
+
 <!--   ) -->
 
 <!-- knitr::kable( -->
+
 <!--   prf_regiao, -->
+
 <!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
+
 <!--   col.names = c( -->
+
 <!--     "Região", -->
+
 <!--     "Feminino", -->
+
 <!--     "Masculino", -->
+
 <!--     "% Feminino", -->
+
 <!--     "% Masculino", -->
+
 <!--     "Total" -->
+
 <!--   ), -->
+
 <!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por Região - Rodovias Federais" -->
+
 <!-- ) -->
+
 <!-- ``` -->
 
 <!-- ```{r} -->
+
 <!-- #| label: prf-lesoes -->
+
 <!-- #| echo: false -->
 
 <!-- prf_lesoes <- prf_condutores_2023 |>  -->
+
 <!--   count(sexo, estado_fisico) |>  -->
+
 <!--   drop_na() |>  -->
+
 <!--   pivot_wider(names_from = sexo, values_from = n) |>  -->
+
 <!--   mutate( -->
+
 <!--     perc_fem = Feminino / sum(Feminino), -->
+
 <!--     perc_fem = scales::percent(perc_fem, accuracy = 1), -->
+
 <!--     perc_masc = Masculino / sum(Masculino), -->
+
 <!--     perc_masc = scales::percent(perc_masc, accuracy = 1) -->
+
 <!--   ) -->
 
 <!-- knitr::kable( -->
+
 <!--   prf_lesoes, -->
+
 <!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
+
 <!--   col.names = c( -->
+
 <!--     "Tipo de lesão", -->
+
 <!--     "Feminino", -->
+
 <!--     "Masculino", -->
+
 <!--     "% por tipo (Fem.)", -->
+
 <!--     "% por tipo (Masc.)" -->
+
 <!--   ), -->
+
 <!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por tipo de lesão - Rodovias Federais" -->
+
 <!-- ) -->
+
 <!-- ``` -->
 
-### Transporte de Cargas
+### Transporte de cargas
 
 ```{r}
 heat_prf_transp <-
@@ -615,35 +733,54 @@ prf_condutores_2023 |>
 <!-- Sinistros de trânsito envolvendo mulheres motoristas de transporte de cargas (Caminhão + Caminhão Trator) -->
 
 <!-- ```{r} -->
+
 <!-- #| label: carga-lesoes -->
+
 <!-- #| echo: false -->
 
 <!-- prf_carga <- prf_condutores_2023 |>  -->
+
 <!--   filter( -->
+
 <!--     sexo == "Feminino", tipo_veiculo %in% c("caminhão", "caminhão-trator") -->
+
 <!--   ) -->
 
 <!-- prf_carga |>  -->
+
 <!--   count(estado_fisico) |>  -->
+
 <!--   knitr::kable( -->
+
 <!--     col.names = c("Tipo de lesão", "Quantidade de condutoras envolvidas"), -->
+
 <!--     caption = "Quantidade de condutoras envolvidas em sinistros de trânsito - tipo de lesão" -->
+
 <!--   ) -->
+
 <!-- ``` -->
 
 <!-- ```{r} -->
+
 <!-- #| label: carga-tipo -->
+
 <!-- #| echo: false -->
 
 <!-- prf_carga |>  -->
+
 <!--   count(tipo_acidente, sort = TRUE) |>  -->
+
 <!--   knitr::kable( -->
+
 <!--     col.names = c("Tipo de sinistro", "Quantidade de condutoras envolvidas"), -->
+
 <!--     caption = "Quantidade de condutoras envolvidas - tipo de sinistro" -->
+
 <!--   ) -->
+
 <!-- ``` -->
 
-### Transporte de Passageiros
+### Transporte de passageiros
 
 ```{r}
 heat_prf_pass <- 
@@ -709,33 +846,51 @@ prf_condutores_2023 |>
 <!-- Sinistros de trânsito envolvendo mulheres motoristas de transporte de passageiros (Ônibus + Microônibus) -->
 
 <!-- ```{r} -->
+
 <!-- #| label: passageiro-lesoes -->
+
 <!-- #| echo: false -->
 
 <!-- prf_passageiro <- prf_condutores_2023 |>  -->
+
 <!--   filter( -->
+
 <!--     sexo == "Feminino", tipo_veiculo %in% c("ônibus", "microônibus") -->
+
 <!--   ) -->
 
 <!-- prf_passageiro |>  -->
+
 <!--   count(estado_fisico) |>  -->
+
 <!--   knitr::kable( -->
+
 <!--     col.names = c("Tipo de lesão", "Quantidade de condutoras envolvidas"), -->
+
 <!--     caption = "Quantidade de condutoras envolvidas em sinistros de trânsito - tipo de lesão" -->
+
 <!--   ) -->
+
 <!-- ``` -->
 
-
 <!-- ```{r} -->
+
 <!-- #| label: passageiro-tipo -->
+
 <!-- #| echo: false -->
 
 <!-- prf_passageiro |>  -->
+
 <!--   count(tipo_acidente, sort = TRUE) |>  -->
+
 <!--   knitr::kable( -->
+
 <!--     col.names = c("Tipo de sinistro", "Quantidade de condutoras envolvidas"), -->
+
 <!--     caption = "Quantidade de condutoras envolvidas - tipo de sinistro" -->
+
 <!--   ) -->
+
 <!-- ``` -->
 
 ## Referências {.unnumbered}
