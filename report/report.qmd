@@ -23,6 +23,7 @@ library(onsvplot)
 library(plotly)
 library(glue)
 library(scales)
+library(gt)
 ```
 
 ```{r}
@@ -301,7 +302,6 @@ renach |>
     theme_minimal()
 ```
 
-
 <!-- ```{r} -->
 
 <!-- #| label: cnh-categoria -->
@@ -405,7 +405,7 @@ renach |>
     geom_col(position = "dodge")
 ```
 
-## Condutores Envolvidos em Sinistros de Trânsito em Rodovias Federais
+## Condutores envolvidos em sinistros em rodovias federais {#sec-prf}
 
 <!-- Fonte: @políciarodoviáriafederal2024 -->
 
@@ -477,7 +477,6 @@ prf_condutores_2023 |>
          ObsPorTotal = `Óbito`/Total * 100) |> 
   gt()
 ```
-
 
 <!-- ```{r} -->
 
