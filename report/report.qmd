@@ -577,18 +577,19 @@ ggplotly(heat_fem_cond, tooltip = c("x", "y"))
 
 <!-- Fonte: @políciarodoviáriafederal2024 -->
 
-A análise é expandida por meio do estudo de dados de sinistros em rodovias federais fornecidos pelo Portal de Dados Abertos da Polícia Rodoviária Federal [@políciarodoviáriafederal2024]. Desta forma, a base de dados agrupada por pessoa possibilita a extração dos casos de condutores envolvidos em sinistros em rodovias federais para o ano de 2023, a fim de analisar o presente cenário da segurança rodiviária em relação ao sexo das vítimas.
+Esta seção inclui dados de sinistros em rodovias federais fornecidos pelo Portal de Dados Abertos da Polícia Rodoviária Federal [@políciarodoviáriafederal2024]. Desta forma, a base de dados agrupada por pessoa possibilita a extração dos casos de condutores envolvidos em sinistros em rodovias federais para o ano de 2023.
 
 ### Transporte geral
 
-Primeiramente, são analisadas as vítimas gerais, investigadas em função do sexo, tipo de sinistro e estado físico da vítima após o ocorrido. A @fig-prf-geral evidencia a quantidade de sinistros conforme as variáveis contempladas pelo estudo, enquanto a @tbl-prf-geral indica os valores totais para ambos os sexos sobre cada estado físico, bem como a taxa de óbitos sobre ao número de envolvidos totais.
+A @fig-prf-geral inclui a quantidade de condutores envolvidos em sinistros,  considerando o sexo do condutor, tipo de sinistro e estado físico do condutor após a ocorrência. A @tbl-prf-geral indica os valores totais para ambos os sexos considerando o estado físico, bem como a taxa de óbitos sobre ao número de envolvidos totais.
 
 ::: panel-tabset
+
 ## Gráfico
 
 ```{r}
 #| echo: false
-#| fig-cap: Gráfico para condutores totais
+#| fig-cap: "Quantidade de condutores envolvidos, considerando o sexo, tipo de sinistro e estado físico do condutor"
 #| label: fig-prf-geral
 
 heat_prf_geral <-
@@ -634,7 +635,7 @@ ggplotly(heat_prf_geral, tooltip = c("x", "y", "fill")) |>
 
 ```{r}
 #| echo: false
-#| tbl-cap: Tabela de estado físico de condutores totais
+#| tbl-cap: Estado físico dos condutores
 #| label: tbl-prf-geral
 
 prf_condutores_2023 |>
@@ -657,208 +658,52 @@ prf_condutores_2023 |>
 ```
 :::
 
-<<<<<<< HEAD
-<!-- ```{r} -->
+A **colisão traseira** e a **colisão transversal** aparentam ser os sinistros mais frequentes em ambos os sexos, porém a **colisão frontal** é claramente o tipo de sinistro mais fatal, atingindo 43,3% e 36,4% do total de óbitos registrados para mulheres e homens respectivamente.
 
-<!-- #| label: prf-count -->
-
-<!-- #| echo: false -->
-
-<!-- prf_count <- prf_condutores_2023 |>  -->
-
-<!--   count(sexo) |>  -->
-
-<!--   drop_na() |>  -->
-
-<!--   mutate( -->
-
-<!--     percentual = n / sum(n), -->
-
-<!--     percentual = scales::percent(percentual, accuracy = 1) -->
-
-<!--   ) -->
-
-<!-- knitr::kable( -->
-
-<!--   prf_count, -->
-
-<!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
-
-<!--   col.names = c( -->
-
-<!--     "Gênero", -->
-
-<!--     "Quantidade de condutores envolvidos", -->
-
-<!--     "Percentual" -->
-
-<!--   ), -->
-
-<!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito - Rodovias Federais" -->
-
-<!-- ) -->
-
-<!-- ``` -->
+<!-- Outra forma de analisar a influência do sexo sobre a ocorrência de certa categoria de sinistro é demonstrada na @fig-prf-taxa, com a taxa de óbitos por sexo e tipo de sinistro sobre a quantidade total de vítimas: -->
 
 <!-- ```{r} -->
-
-<!-- #| label: prf-regiao -->
-
 <!-- #| echo: false -->
+<!-- #| fig-cap: Taxa de óbitos por sexo e tipo de sinistro por óbitos totais em sinistros rodoviários -->
+<!-- #| label: fig-prf-taxa -->
 
-<!-- prf_regiao <- prf_condutores_2023 |>  -->
-
-<!--   count(sexo, regiao) |>  -->
-
-<!--   drop_na() |> -->
-
-<!--   pivot_wider(names_from = sexo, values_from = n) |>  -->
-
-<!--   mutate( -->
-
-<!--     total = Feminino + Masculino, -->
-
-<!--     perc_fem = scales::percent(Feminino / (total), accuracy = 1), -->
-
-<!--     perc_masc = scales::percent(Masculino / (total), accuracy = 1), -->
-
+<!-- plot_modal <-  -->
+<!--   prf_condutores_2023 |>  -->
+<!--   count(sexo, tipo_acidente, estado_fisico) |>  -->
+<!--   complete( -->
+<!--     tipo_acidente = prf_condutores_2023$tipo_acidente, -->
+<!--     sexo = prf_condutores_2023$sexo, -->
+<!--     estado_fisico = prf_condutores_2023$estado_fisico, -->
+<!--     fill = list(n = 0) -->
 <!--   ) |>  -->
-
-<!--   select( -->
-
-<!--     regiao, Feminino, Masculino, perc_fem, perc_masc, total -->
-
-<!--   ) -->
-
-<!-- knitr::kable( -->
-
-<!--   prf_regiao, -->
-
-<!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
-
-<!--   col.names = c( -->
-
-<!--     "Região", -->
-
-<!--     "Feminino", -->
-
-<!--     "Masculino", -->
-
-<!--     "% Feminino", -->
-
-<!--     "% Masculino", -->
-
-<!--     "Total" -->
-
-<!--   ), -->
-
-<!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por Região - Rodovias Federais" -->
-
-<!-- ) -->
-
-<!-- ``` -->
-
-<!-- ```{r} -->
-
-<!-- #| label: prf-lesoes -->
-
-<!-- #| echo: false -->
-
-<!-- prf_lesoes <- prf_condutores_2023 |>  -->
-
-<!--   count(sexo, estado_fisico) |>  -->
-
 <!--   drop_na() |>  -->
+<!--   pivot_wider(names_from = estado_fisico, values_from = n) |>  -->
+<!--   mutate(tipo_acidente = str_to_title(tipo_acidente), -->
+<!--          taxa = `Óbito`/sum(`Óbito`)) |>  -->
+<!--   ggplot(aes(taxa, tipo_acidente, fill = sexo)) + -->
+<!--     geom_bar(stat = "identity", position = "dodge", -->
+<!--              aes(text = glue("Taxa: {round(taxa * 100, 2)}%<br>Tipo de Acidente: {tipo_acidente}<br>Sexo: {sexo}"))) + -->
+<!--     labs(y = NULL, x = "Taxa de Óbitos por Óbitos Totais", fill = NULL) + -->
+<!--     scale_x_continuous(labels = percent_format()) + -->
+<!--     scale_fill_manual(values = as_vector(unname(onsv_palette))) + -->
+<!--     theme_minimal() + -->
+<!--     theme(panel.grid = element_blank()) -->
 
-<!--   pivot_wider(names_from = sexo, values_from = n) |>  -->
-
-<!--   mutate( -->
-
-<!--     perc_fem = Feminino / sum(Feminino), -->
-
-<!--     perc_fem = scales::percent(perc_fem, accuracy = 1), -->
-
-<!--     perc_masc = Masculino / sum(Masculino), -->
-
-<!--     perc_masc = scales::percent(perc_masc, accuracy = 1) -->
-
-<!--   ) -->
-
-<!-- knitr::kable( -->
-
-<!--   prf_lesoes, -->
-
-<!--   format.args = list(big.mark = ".", decimal.mark = ","), -->
-
-<!--   col.names = c( -->
-
-<!--     "Tipo de lesão", -->
-
-<!--     "Feminino", -->
-
-<!--     "Masculino", -->
-
-<!--     "% por tipo (Fem.)", -->
-
-<!--     "% por tipo (Masc.)" -->
-
-<!--   ), -->
-
-<!--   caption = "Quantidade de Condutores Envolvidos em Sinistros de Trânsito, por tipo de lesão - Rodovias Federais" -->
-
-<!-- ) -->
-
+<!-- ggplotly(plot_modal, tooltip = "text") -->
 <!-- ``` -->
 
-Observa-se a saliência da sinistralidade para o sexo masculino, com valores mais elevados em todos os aspectos em relação ao feminino, em grande parte devido a sua maior participação no trânsito. A **colisão traseira** e a **colisão transversal** aparentam ser os sinistros mais frequentes em ambos os sexos, porém a **colisão frontal** é claramente o tipo de sinistro mais fatal, atingindo 43,3% e 36,4% do total de óbitos registrados para mulheres e homens respectivamente.
-
-Outra forma de analisar a influência do sexo sobre a ocorrência de certa categoria de sinistro é demonstrada na @fig-prf-taxa, com a taxa de óbitos por sexo e tipo de sinistro sobre a quantidade total de vítimas:
-=======
-### Transporte de cargas
->>>>>>> main
-
-```{r}
-#| echo: false
-#| fig-cap: Taxa de óbitos por sexo e tipo de sinistro por óbitos totais em sinistros rodoviários
-#| label: fig-prf-taxa
-
-plot_modal <- 
-  prf_condutores_2023 |> 
-  count(sexo, tipo_acidente, estado_fisico) |> 
-  complete(
-    tipo_acidente = prf_condutores_2023$tipo_acidente,
-    sexo = prf_condutores_2023$sexo,
-    estado_fisico = prf_condutores_2023$estado_fisico,
-    fill = list(n = 0)
-  ) |> 
-  drop_na() |> 
-  pivot_wider(names_from = estado_fisico, values_from = n) |> 
-  mutate(tipo_acidente = str_to_title(tipo_acidente),
-         taxa = `Óbito`/sum(`Óbito`)) |> 
-  ggplot(aes(taxa, tipo_acidente, fill = sexo)) +
-    geom_bar(stat = "identity", position = "dodge",
-             aes(text = glue("Taxa: {round(taxa * 100, 2)}%<br>Tipo de Acidente: {tipo_acidente}<br>Sexo: {sexo}"))) +
-    labs(y = NULL, x = "Taxa de Óbitos por Óbitos Totais", fill = NULL) +
-    scale_x_continuous(labels = percent_format()) +
-    scale_fill_manual(values = as_vector(unname(onsv_palette))) +
-    theme_minimal() +
-    theme(panel.grid = element_blank())
-
-ggplotly(plot_modal, tooltip = "text")
-```
-
 ### Transporte de cargas
 
-Conforme a análise de condutores totais envolvidos em sinistros, o estudo pode ser afunilado para o caso exclusivo de condutores de veículos para transporte de cargas. Logo, a @fig-prf-carga e a @tbl-prf-carga representam o mesmo procedimento anterior, com os dados filtrados em sinistros com condutores de **caminhões** e **caminhões-tratores**.
+A @fig-prf-carga e a @tbl-prf-carga representam novamente a quantidade de condutores envolvidos em sinistros, porém, considerando apenas os condutores de **caminhões** e **caminhões-tratores**.
 
-Os sinistros possuem um comportamento similar à análise anterior, mas há um maior destaque para o **tombamento** e **saída de leito carroçavel** por parte do masculino, sendo sinistros comuns para este tipo de modal. Para o transporte de carga, todos os sinistros femininos somam menos de 1% dos masculinos, apesar da semelhança entre as taxas de óbitos por sinistros totais.
+Os dados apresentam um comportamento similar à análise anterior, com destaque para os tipos de sinistros **tombamento** e **saída de leito carroçavel**, sendo sinistros comuns para este tipo de modal. Para o transporte de carga, a quantidade de condutoras do sexo feminino soma menos de 1% da quantidade de condutores do sexo masculino.
 
 ::: panel-tabset
 ## Gráfico
 
 ```{r}
 #| echo: false
-#| fig-cap: Gráfico para condutores de transporte de cargas
+#| fig-cap: "Quantidade de condutores envolvidos em sinistros com transporte de carga, considerando o sexo, tipo de sinistro e estado físico do condutor"
 #| label: fig-prf-carga
 
 heat_prf_transp <-
@@ -905,7 +750,7 @@ ggplotly(heat_prf_transp, tooltip = c("x", "y", "fill")) |>
 
 ```{r}
 #| echo: false
-#| tbl-cap: Tabela de estado físico de condutores de transporte de cargas
+#| tbl-cap: Estado físico dos condutores de transporte de cargas
 #| label: tbl-prf-carga
 
 prf_condutores_2023 |>
@@ -931,9 +776,7 @@ prf_condutores_2023 |>
 
 ### Transporte de passageiros
 
-Por fim, a mesma análise pode ser aplicada ao caso de condutores de veículos para o transporte de passageiros, tendo a base de dados filtrada para o caso de condutores de **ônibus** e **microônibus**. Neste cenário, há uma drástica diminuição nos sinistros femininos observados, provalmente em razão da escassa participação de mulheres neste modal. 
-
-Em 2023, nenhuma vítima feminina foi registrada no âmbito de rodovias federais, sendo que os valores da @tbl-prf-pass mostram como as mulheres dispõem de 98,5% menos participação nos sinistros deste ano que homens para este tipo de condução.
+Por fim, a mesma análise foi aplicada considerando os condutores do transporte de passageiros, filtrando para os veículos **ônibus** e **microônibus**. A diferença entre os sexos observado beste cenário é provalmente em razão da escassa participação de mulheres neste modal, assim como observado no transporte de cargas. Em 2023, nenhuma vítima ferida ou fatal do sexo feminino foi registrada no âmbito de rodovias federais, conforme observado na @tbl-prf-pass. 
 
 ::: panel-tabset
 ## Gráfico
