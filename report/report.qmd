@@ -690,7 +690,7 @@ prf_condutores_2023 |>
 
 Observa-se a saliência da sinistralidade para o sexo masculino, com valores mais elevados em todos os aspectos em relação ao feminino, em grande parte devido a sua maior participação no trânsito. A **colisão traseira** e a **colisão transversal** aparentam ser os sinistros mais frequentes em ambos os sexos, porém a **colisão frontal** é claramente o tipo de sinistro mais fatal, atingindo 43,3% e 36,4% do total de óbitos registrados para mulheres e homens respectivamente.
 
-Outra forma de analisar a influência do sexo sobre a ocorrência de certa categoria de sinistro é demonstrada na @fig-prf-taxa. É observado que *eventos atípicos* ocasionam em mais fatalidades que quaisquer outros sinistros rodoviários.
+Outra forma de analisar a influência do sexo sobre a ocorrência de certa categoria de sinistro é demonstrada na @fig-prf-taxa, com a taxa de óbitos por sexo e tipo de sinistro sobre a quantidade total de vítimas:
 
 ```{r}
 #| echo: false
@@ -711,7 +711,8 @@ plot_modal <-
   mutate(tipo_acidente = str_to_title(tipo_acidente),
          taxa = `Óbito`/sum(`Óbito`)) |> 
   ggplot(aes(taxa, tipo_acidente, fill = sexo)) +
-    geom_bar(stat = "identity", aes(text = glue("Taxa: {round(taxa * 100, 2)}%<br>Tipo de Acidente: {tipo_acidente}<br>Sexo: {sexo}"))) +
+    geom_bar(stat = "identity", position = "dodge",
+             aes(text = glue("Taxa: {round(taxa * 100, 2)}%<br>Tipo de Acidente: {tipo_acidente}<br>Sexo: {sexo}"))) +
     labs(y = NULL, x = "Taxa de Óbitos por Óbitos Totais", fill = NULL) +
     scale_x_continuous(labels = percent_format()) +
     scale_fill_manual(values = as_vector(unname(onsv_palette))) +
